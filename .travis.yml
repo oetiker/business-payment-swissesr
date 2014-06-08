@@ -1,20 +1,13 @@
 language: perl
 
 perl:
-  - "5.19"
   - "5.18"
-  - "5.16"
-  - "5.14"
 
-install:
+before_install:
   - wget https://github.com/scottkosty/install-tl-ubuntu/raw/master/install-tl-ubuntu && chmod +x ./install-tl-ubuntu
   - sudo ./install-tl-ubuntu
+  - cpanm  Devel::Cover::Report::Coveralls IO::Socket::SSL Mojolicious
 
-before_script:
-  - ./setup/build-perl-modules.sh
-  - ./setup/build-devel.sh
-  
 script:
-  - perl Makefile.PL
-  - env PERL5LIB=`pwd`/thirdparty/lib/perl5  thirdparty/bin/cover -test -report coveralls
+  - cover -test -report coveralls
 
