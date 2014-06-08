@@ -20,16 +20,16 @@ Esr - Class for creating Esr PDFs
  );
  $esr->add(    
     amount => 44.40,
-    account => '01-17546-3'
-    senderAddressLaTeX => 'Override'
-    recipientAddressLaTeX => <<'LaTeX_End'
- Peter Müller\newline
+    account => '01-17546-3',
+    senderAddressLaTeX => 'Override',
+    recipientAddressLaTeX => <<'LaTeX_End',
+ Peter MÃ¼ller\newline
  Haldenweg 12b\newline
  4600 Olten
- LaTeX_End   
-    bodyLaTeX => 'the boddy of the bill in latex format'
+ LaTeX_End
+    bodyLaTeX => 'the boddy of the bill in latex format',
     referenceNumber => 3423,
-    watermark => 'secret marker'
+    watermark => 'secret marker',
  );
  $esr->pdfEmail();
  $esr->pdfPrint();
@@ -59,35 +59,40 @@ has moduleBase => sub {
 has shiftRightMm => 0;
 has shiftDownMm => 0;
 has senderAddressLaTeX => 0;
+
 has tasks => sub {
     [];
 };
+
+has tmpDir => sub {
+    my $tmpDir = '/tmp/SwissESR'.$$;
+    if (not -d $tmpDir){
+       mkdir $tmpDir or die "Failed to create $tmpDir";
+       chmod 0700, $tmpDir;
+    }
+    return $tmpDir;
+};
+
+sub DESTROY {
+    my $self = shift;
+    unlink glob $self->tmpDir.'/*';
+    unlink glob $self->tmpDir.'/.??*';
+    rmdir $self->tmpDir;
+}
 
 sub add {
     my $self = shift;
     push @{$self->tasks}, {@_};
 }
 
-sub pdfEmail {
-    my $self = shift;
-    return $self->$runLateX($self->$makeEsrLatex(1));
-}
-
-sub pdfPrint {
-    my $self = shift;
-    return $self->$runLateX($self->$makeEsrLatex(0));
-}
 
 # this file is written with latin1 encoding
         
 my $runLaTeX = sub {
     my $self = shift;
     my $src = shift;
-    my $tmpdir = "/tmp/esrmaker.$$";
-    if (not -d $tmpdir){
-       mkdir $tmpdir or die "Failed to create $tmpdir";
-    }
-    open my $out, ">:utf8", "esr.tex" or die "Failed to create esr.tex";
+    my $tmpdir = $self->tmpDir;
+    open my $out, ">:utf8", "$tmpdir/esr.tex" or die "Failed to create esr.tex";
     print $out $src;
     close $out;
     my $cwd = cwd();
@@ -99,8 +104,7 @@ my $runLaTeX = sub {
     if ($? != 0){
         die $latexOut;
     }
-    my $pdf = slurp 'esr.pdf';
-    unlink glob $tmpdir.'/esr.*';
+    my $pdf = slurp $tmpdir.'/esr.pdf';
     return $pdf;   
 };
 
@@ -115,7 +119,7 @@ my $calcEsrChecksum = sub {
         $keep = $map[($keep+$number) % 10 ];
     }
     return ((10 - $keep) % 10);
-}
+};
 
 
 my $makeEsrLaTeX = sub {
@@ -151,13 +155,15 @@ TEX_END
     $doc =~ s/\${(\S+?)}/$docSet{$1}/eg;
     for my $task (@{$self->tasks}) {
         my %cfg = %$task;
+        $cfg{senderAddressLaTeX} //= $self->senderAddressLaTeX;
         $cfg{root} = $root;
-        if ($electronic){
-            $cfg{template} = $electronic ?
-            '\put(0,1){\includegraphics{'.$root.'/esrTemplate.pdf}}
-\put(8,68){\parbox[b]{8cm}{\flushleft \textbf{\color{red}Dieser Einzahlungsschein ist nur für elektronische Einzahlungen geeignet!}}}' : '';
-        }    
-        my ($pc_base,$pc_nr) = $cfg{pc} =~ /(\d\d)-(.+)/;
+        $cfg{bs} = '\\';
+        $cfg{template} = $electronic
+            ? '\put(0,1){\includegraphics{'.$root.'/esrTemplate.pdf}}'
+              .'\put(8,68){\parbox[b]{8cm}{\flushleft \textbf{\color{red}'
+              .'Dieser Einzahlungsschein ist nur fÃ¼r elektronische Einzahlungen geeignet!}}}' 
+            : '';
+        my ($pc_base,$pc_nr) = $cfg{account} =~ /(\d\d)-(.+)/;
         $pc_nr =~ s/[^\d]//g;    
         my $ref  = $cfg{referenceNumber}.$self->$calcEsrChecksum($cfg{referenceNumber});
         $cfg{code} = '042>'
@@ -194,25 +200,43 @@ DOC_END
 \put(20,278){\begin{minipage}[t]{17cm}
 ${senderAddressLaTeX}
 
-${bs}vspace*{2.3cm}
-${bs}hspace*{10.7cm}${bs}parbox[t]{6.5cm}{
-${recipientAddressLaTeX}
+\vspace*{2.3cm}
+\hspace*{10.7cm}\parbox[t]{6.5cm}{
+  ${recipientAddressLaTeX}
 }
 
-${bs}vspace*{-0.5cm}
-${body}\end{minipage}}
+\vspace*{-0.5cm}
+${bodyLaTeX}\end{minipage}}
 \end{picture}
 \newpage
 
 DOC_END
-        $page =~ s/\${([^\s}]+)}/$cfg{$1}/xg;
+        my $resolve = sub { 
+            my $v = shift; 
+            if (not defined $cfg{$v}){ 
+                print STDERR "No data for $v\n"; return ''
+            } 
+            else { 
+                return $cfg{$v}
+            }
+        };
+        $page =~ s/\${(\S+?)}/$resolve->($1)/eg;
         $page =~ s/&/\\&/g;
         $doc .= $page;
     }
     $doc .= '\end{document}'."\n";
     return $doc;
+};
+
+sub pdfEmail {
+    my $self = shift;
+    return $self->$runLaTeX($self->$makeEsrLaTeX(1));
 }
 
+sub pdfPrint {
+    my $self = shift;
+    return $self->$runLaTeX($self->$makeEsrLaTeX(0));
+}
 1;
 
 __END__
@@ -227,7 +251,7 @@ Copyright (c) 2014 by OETIKER+PARTNER AG. All rights reserved.
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 2 of the License, or
+the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful,
