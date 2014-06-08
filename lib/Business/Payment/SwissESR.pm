@@ -2,7 +2,7 @@ package Business::Payment::SwissESR;
 
 =head1 NAME
 
-Esr - Class for creating Esr PDFs
+Business::Payment::SwissESR - Class for creating Esr PDFs
 
 =head1 SYNOPSYS
 
@@ -34,7 +34,7 @@ Esr - Class for creating Esr PDFs
  $esr->pdfEmail();
  $esr->pdfPrint();
 
- =head1 DESCRIPTION
+=head1 DESCRIPTION
 
 This class let's you create ESR pdfs both for email and to to print on official esr forms.
 The content is modled after:
@@ -48,7 +48,7 @@ use Mojo::Util qw(slurp);
 use Mojo::Base -base;
 use Cwd;
 
-our $VERSION = '0.1.0';
+our $VERSION = '0.1.1';
 
 has moduleBase => sub {
     my $path = $INC{'Business/Payment/SwissESR.pm'};
