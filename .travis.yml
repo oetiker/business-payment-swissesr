@@ -9,5 +9,5 @@ before_install:
   - cpanm  Devel::Cover::Report::Coveralls IO::Socket::SSL Mojolicious
 
 script:
-  - cover -test -report coveralls
+  - cover -test +ignore Mojo +ignore Types +ignore common/sense -report coveralls
 
