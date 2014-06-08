@@ -11,8 +11,8 @@ install:
   - sudo apt-get install texlive-full
 
 before_script:
-  - sudo ./setup/build-perl-modules.sh
-  - sudo ./setup/build-devel.sh
+  - ./setup/build-perl-modules.sh
+  - ./setup/build-devel.sh
   
 script:
   - perl Makefile.PL
