@@ -7,8 +7,8 @@ perl:
   - "5.14"
 
 install:
-  - sudo apt-get update
-  - sudo apt-get install texlive
+  - wget https://github.com/scottkosty/install-tl-ubuntu/raw/master/install-tl-ubuntu && chmod +x ./install-tl-ubuntu
+  - sudo ./install-tl-ubuntu
 
 before_script:
   - ./setup/build-perl-modules.sh
