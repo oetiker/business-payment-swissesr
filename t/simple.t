@@ -31,8 +31,8 @@ LaTeX_End
     watermark => 'secret marker',
 );
 
-SKIP: {
-    skip "No LuaLaTeX installed", 2 if `lualatex --version` !~ /This is LuaTeX/;
+SKIP: {  
+    skip "No LuaLaTeX installed", 2 if `which lualatex` !~ /lualatex/;
 
     my $emailPdf = $t->pdfEmail();
 
