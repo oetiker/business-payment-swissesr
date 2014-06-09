@@ -18,7 +18,7 @@ LaTeX_End
 
 is (ref $t,'Business::Payment::SwissESR', 'Instanciation');
 
-is (`which lualatex` =~ /lualatex/, 1, 'Is LuaLaTeX available?');
+is (`which xelatex` =~ /xelatex/, 1, 'Is XeLaTeX available?');
 
 $t->add(
     amount => 44.40,
