@@ -31,8 +31,10 @@ Business::Payment::SwissESR - Class for creating Esr PDFs
     referenceNumber => 3423,
     watermark => 'secret marker',
  );
- $esr->pdfEmail();
- $esr->pdfPrint();
+ 
+ my $pdfEmail = $esr->pdfEmail();
+ my $pdfPrint = $esr->pdfPrint();
+
 
 =head1 DESCRIPTION
 
@@ -41,6 +43,10 @@ The content is modled after:
 
 L<https://www.postfinance.ch/content/dam/pf/de/doc/consult/templ/example/44218_templ_de_fr_it.pdf>
 
+=head1 PROPERTIES
+
+The SwissESR objects have the following properties:
+
 =cut
 
 use vars qw($VERSION);
@@ -48,21 +54,42 @@ use Mojo::Util qw(slurp);
 use Mojo::Base -base;
 use Cwd;
 
-our $VERSION = '0.1.1';
+our $VERSION = '0.2.0';
 
-has moduleBase => sub {
-    my $path = $INC{'Business/Payment/SwissESR.pm'};
-    $path =~ s/.pm$//;
-    return $path;
-};
+
+=head2 shiftRightMm
+
+Swiss Post is very picky about proper positioning of the text in the page. Make sure you get one of
+the official transparencies to verify that your printouts look ok. And even that may not suffice, to be sure, send a bunch
+of printouts for verification to Swiss Post.
+
+With this property you can shift the entire printout to the right in milimeters.
+
+=cut
 
 has shiftRightMm => 0;
+
+=head2 shiftDownMm
+
+This is for shifting the entire printout down.
+
+=cut
+
 has shiftDownMm => 0;
-has senderAddressLaTeX => 0;
+
+=head2 senderAddressLaTeX
+
+A default sender address for your invoices. This can be overridden in an individual basis
+
+=cut
+
+has senderAddressLaTeX => sub { 'no default' };
 
 has tasks => sub {
     [];
 };
+
+# where lualatex can run to create the pdfs
 
 has tmpDir => sub {
     my $tmpDir = '/tmp/SwissESR'.$$;
@@ -73,6 +100,8 @@ has tmpDir => sub {
     return $tmpDir;
 };
 
+# clean up the temp data
+
 sub DESTROY {
     my $self = shift;
     unlink glob $self->tmpDir.'/*';
@@ -80,13 +109,47 @@ sub DESTROY {
     rmdir $self->tmpDir;
 }
 
+# where to find our resource files
+
+has moduleBase => sub {
+    my $path = $INC{'Business/Payment/SwissESR.pm'};
+    $path =~ s/.pm$//;
+    return $path;
+};
+
+=head1 METHODS
+
+The SwissERS objects have the following methods.
+
+=head2 add(key=>value, ...)
+
+Adds an invoice. Specify the following properties for each invoice:
+
+    amount => 44.40,
+    account => '01-17546-3',
+    recipientAddressLaTeX => <<'LaTeX_End',
+ Peter Müller\newline
+ Haldenweg 12b\newline
+ 4600 Olten
+ LaTeX_End
+    bodyLaTeX => 'the boddy of the bill in latex format',
+    referenceNumber => 3423,
+
+these two properties are optional
+
+    senderAddressLaTeX => 'Override',
+    watermark => 'small marker to be printed on the invoice',
+
+You can call add multiple times to generate a buch of invoices in one pdf file.
+
+=cut
+
 sub add {
     my $self = shift;
     push @{$self->tasks}, {@_};
 }
 
-
-# this file is written with latin1 encoding
+# execute llualatex with the given source file and return the resulting pdf or die
         
 my $runLaTeX = sub {
     my $self = shift;
@@ -110,6 +173,7 @@ my $runLaTeX = sub {
 
 # this is that very cool algorithm to calculate the checksum
 # used in the 
+
 my $calcEsrChecksum = sub {
     my $self = shift;
     my $input = shift;
@@ -121,6 +185,7 @@ my $calcEsrChecksum = sub {
     return ((10 - $keep) % 10);
 };
 
+# generate the latex code for the esr
 
 my $makeEsrLaTeX = sub {
     my $self = shift;
@@ -228,10 +293,30 @@ DOC_END
     return $doc;
 };
 
+=head2 pdfEmail
+
+Render the invoice for sending via email. The invoice will contain a grey
+rendering of the official ESR invoice form.  It can NOT be used for payment
+at the Post Office counter, but it holds all information required for
+electronic payment and it is readable by OCR payment processing devices.
+
+=cut
+
 sub pdfEmail {
     my $self = shift;
     return $self->$runLaTeX($self->$makeEsrLaTeX(1));
 }
+
+=head2 pdfPrint
+
+Renders to pdf fit to print on the official pink invoce forms (A4 Upright).
+Use the shiftRight and shiftDown properties to position the output properly. 
+This depends on your printing device as not all printers position the output
+exactly the same, but SwissPost is very picky when reading paper invoices. 
+Make sure to send a few test prints to Swiss Post prior to doing a big
+runoff.
+
+=cut
 
 sub pdfPrint {
     my $self = shift;
