@@ -3,7 +3,7 @@ use lib $FindBin::Bin.'/../thirdparty/lib/perl5';
 use lib $FindBin::Bin.'/../lib';
 use utf8;
 
-use Test::More tests => 4;
+use Test::More tests => 5;
 
 use_ok 'Business::Payment::SwissESR';
 
@@ -18,6 +18,8 @@ LaTeX_End
 
 is (ref $t,'Business::Payment::SwissESR', 'Instanciation');
 
+is (`which lualatex` =~ /lualatex/, 1, 'Is LuaLaTeX available?');
+
 $t->add(
     amount => 44.40,
     account => '01-17546-3',
@@ -31,18 +33,12 @@ LaTeX_End
     watermark => 'secret marker',
 );
 
-SKIP: {  
-    skip "No LuaLaTeX installed", 2 if `which lualatex` !~ /lualatex/;
+my $emailPdf = $t->pdfEmail();
 
-    my $emailPdf = $t->pdfEmail();
+is (substr($emailPdf,0,4),'%PDF', 'EmailPDF');
 
-    is (substr($emailPdf,0,4),'%PDF', 'EmailPDF');
+my $printPdf = $t->pdfPrint();
 
-    my $printPdf = $t->pdfPrint();
-
-    is (substr($printPdf,0,4),'%PDF', 'PrintPDF');
-
-    # $esr->pdfPrint();
-}
+is (substr($printPdf,0,4),'%PDF', 'PrintPDF');
 
 exit 0;
