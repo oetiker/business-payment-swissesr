@@ -33,12 +33,12 @@ LaTeX_End
     watermark => 'secret marker',
 );
 
-my $emailPdf = $t->pdfEmail();
+my $pdf = $t->renderPdf();
 
-is (substr($emailPdf,0,4),'%PDF', 'EmailPDF');
+is (substr($pdf,0,4),'%PDF', 'PdfRender 1');
 
-my $printPdf = $t->pdfPrint();
+my $pdf2 = $t->renderPdf(showPaymentSlip=>1);
 
-is (substr($printPdf,0,4),'%PDF', 'PrintPDF');
+is (substr($pdf2,0,4),'%PDF', 'PdfRender 2');
 
 exit 0;

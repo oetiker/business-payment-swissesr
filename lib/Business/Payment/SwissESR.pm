@@ -32,9 +32,7 @@ Business::Payment::SwissESR - Class for creating Esr PDFs
     watermark => 'secret marker',
  );
  
- my $pdfEmail = $esr->pdfEmail();
- my $pdfPrint = $esr->pdfPrint();
-
+ my $pdf = $esr->renderPdf(showPaymentSlip=>1);
 
 =head1 DESCRIPTION
 
@@ -54,7 +52,7 @@ use Mojo::Util qw(slurp);
 use Mojo::Base -base;
 use Cwd;
 
-our $VERSION = '0.3.0';
+our $VERSION = '0.4.0';
 
 
 =head2 shiftRightMm
@@ -294,35 +292,23 @@ DOC_END
     return $doc;
 };
 
-=head2 pdfEmail
+=head2 renderPdf(showPaymentSlip => 1|0)
 
-Render the invoice for sending via email. The invoice will contain a grey
-rendering of the official ESR payment slip.  It can NOT be used for payment
-at the Post Office counter, but it holds all information required for
-electronic payment and it is readable by OCR payment processing devices.
+Render the invoice in pdf format.
 
-=cut
-
-sub pdfEmail {
-    my $self = shift;
-    return $self->$runLaTeX($self->$makeEsrLaTeX(1));
-}
-
-=head2 pdfPrint
-
-Renders to pdf fit to print on the official pink invoce forms (A4 Upright).
-Use the shiftRight and shiftDown properties to position the output properly. 
-This depends on your printing device as not all printers position the output
-exactly the same, but SwissPost is very picky when processing paper payment slips
-Make sure to send a few test prints to Swiss Post prior to doing a big
-runoff.
+If the C<showPaymentSlip> option is set, the invoice will contain a grey
+rendering of the official ESR payment slip.  For payment at the Post Office
+counter, the invoice and payment slip have to be printed on 'official'
+paper containing a pre-printed ESR slip.
 
 =cut
 
-sub pdfPrint {
+sub renderPdf {
     my $self = shift;
-    return $self->$runLaTeX($self->$makeEsrLaTeX(0));
+    my %args = @_;
+    return $self->$runLaTeX($self->$makeEsrLaTeX($args{showPaymentSlip}));
 }
+
 1;
 
 __END__
