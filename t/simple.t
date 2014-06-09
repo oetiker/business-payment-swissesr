@@ -5,8 +5,8 @@ use utf8;
 
 unshift @INC, sub {
     my(undef, $filename) = @_;
-    if ( [Amy $found = (grep { -e $_ } map { "$_/$filename" } grep { !ref } @INC)[0] and $filename =~ /SwissESR/ ) {
-                print STDERR $filename;
+    return () if $filename !~ /SwissESR/;
+    if ( my $found = (grep { -e $_ } map { "$_/$filename" } grep { !ref } @INC)[0] ) {
                 local $/ = undef;
                 open(my $fh, '<', $found) || die("Can't read module file $found\n");
                 my $module_text = <$fh>;
