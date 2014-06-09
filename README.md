@@ -10,5 +10,5 @@ Note that the module uses lualatex to generate the pdf file! To get a copy of lu
 TeXLive. On Ubuntu/Debian you can do
 
 ```sh
-apt-get install texlive-luatex texlive-latex-base texlive-xetex
+apt-get install texlive-luatex texlive-latex-base texlive-xetex texlive-latex-recommended
 ```
