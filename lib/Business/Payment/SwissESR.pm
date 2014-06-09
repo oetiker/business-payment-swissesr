@@ -205,13 +205,12 @@ my $makeEsrLaTeX = sub {
 \makeatletter
 \let\raggednewline=\@normalcr
 \makeatother
-\usepackage{parskip}
+\usepackage[parfill]{parskip}
 \newfontface\ocrb[Scale=1.005,Path = ${root}/ ]{ocrb10.otf}
 \setmainfont{DejaVu Sans Condensed}
 \usepackage{graphicx}
 \usepackage{calc}
 \pagestyle{empty}
-\setlength{\parindent}{0pt}
 \setlength{\unitlength}{1mm}
 \begin{document}
 
