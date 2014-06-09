@@ -38,8 +38,8 @@ Business::Payment::SwissESR - Class for creating Esr PDFs
 
 =head1 DESCRIPTION
 
-This class let's you create ESR pdfs both for email and to to print on official esr forms.
-The content is modled after:
+This class let's you create Swiss ESR payment slips in PDF format both for
+email and to to print on official ESR pre-prints forms.  The content is modeled after:
 
 L<https://www.postfinance.ch/content/dam/pf/de/doc/consult/templ/example/44218_templ_de_fr_it.pdf>
 
@@ -54,14 +54,15 @@ use Mojo::Util qw(slurp);
 use Mojo::Base -base;
 use Cwd;
 
-our $VERSION = '0.2.0';
+our $VERSION = '0.3.0';
 
 
 =head2 shiftRightMm
 
-Swiss Post is very picky about proper positioning of the text in the page. Make sure you get one of
-the official transparencies to verify that your printouts look ok. And even that may not suffice, to be sure, send a bunch
-of printouts for verification to Swiss Post.
+Swiss Post is very picky about proper positioning of the text in the ESR
+payment slip.  Make sure you get one of the official transparencies to
+verify that your printouts look ok.  Even that may not suffice, to be
+sure, send a bunch of printouts for verification to Swiss Post.
 
 With this property you can shift the entire printout to the right in milimeters.
 
@@ -79,7 +80,7 @@ has shiftDownMm => 0;
 
 =head2 senderAddressLaTeX
 
-A default sender address for your invoices. This can be overridden in an individual basis
+A default sender address for invoice and payment slip. This can be overridden in an individual basis
 
 =cut
 
@@ -248,11 +249,11 @@ DOC_END
 ${template}
 % the reference number ... positioning this properly is THE crucial element
 \put(204,18){\makebox[0pt][r]{\ocrb \fontsize{10pt}{16pt}\selectfont ${code}}}
-\put(8,90){\parbox[t]{5cm}{\small ${recipientAddressLaTeX}}}
-\put(63,90){\parbox[t]{8cm}{\small ${recipientAddressLaTeX}}}
+\put(8,90){\parbox[t]{5cm}{\small ${senderAddressLaTeX}}}
+\put(63,90){\parbox[t]{8cm}{\small ${senderAddressLaTeX}}}
 \put(8,41){\tiny ${referenceNumber}}
-\put(8,35){\parbox[t]{5cm}{\small ${senderAddressLaTeX}}}
-\put(127,54){\parbox[t]{7cm}{\small  ${senderAddressLaTeX}}}
+\put(8,35){\parbox[t]{5cm}{\small ${recipientAddressLaTeX}}}
+\put(127,54){\parbox[t]{7cm}{\small  ${recipientAddressLaTeX}}}
 \put(30,61){\small ${account}}
 \put(92,61){\small ${account}}
 \put(200,69.5){\makebox[0pt][r]{\ocrb ${referenceNumber}}}
@@ -296,7 +297,7 @@ DOC_END
 =head2 pdfEmail
 
 Render the invoice for sending via email. The invoice will contain a grey
-rendering of the official ESR invoice form.  It can NOT be used for payment
+rendering of the official ESR payment slip.  It can NOT be used for payment
 at the Post Office counter, but it holds all information required for
 electronic payment and it is readable by OCR payment processing devices.
 
@@ -312,7 +313,7 @@ sub pdfEmail {
 Renders to pdf fit to print on the official pink invoce forms (A4 Upright).
 Use the shiftRight and shiftDown properties to position the output properly. 
 This depends on your printing device as not all printers position the output
-exactly the same, but SwissPost is very picky when reading paper invoices. 
+exactly the same, but SwissPost is very picky when processing paper payment slips
 Make sure to send a few test prints to Swiss Post prior to doing a big
 runoff.
 
