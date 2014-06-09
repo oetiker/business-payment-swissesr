@@ -89,7 +89,7 @@ has tasks => sub {
     [];
 };
 
-# where xelatex can run to create the pdfs
+# where lualatex can run to create the pdfs
 
 has tmpDir => sub {
     my $tmpDir = '/tmp/SwissESR'.$$;
@@ -149,7 +149,7 @@ sub add {
     push @{$self->tasks}, {@_};
 }
 
-# execute xelatex with the given source file and return the resulting pdf or die
+# execute lualatex with the given source file and return the resulting pdf or die
         
 my $runLaTeX = sub {
     my $self = shift;
@@ -160,7 +160,7 @@ my $runLaTeX = sub {
     close $out;
     my $cwd = cwd();
     chdir $tmpdir or die "Failed to chdir to $tmpdir";
-    open my $latex, '-|', 'xelatex','esr';
+    open my $latex, '-|', 'lualatex','esr';
     chdir $cwd;
     my $latexOut = join '', <$latex>;
     close $latex;            

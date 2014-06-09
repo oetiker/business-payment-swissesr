@@ -4,8 +4,8 @@ perl:
   - "5.18"
 
 before_install:
-  - sudo apt-get update
-  - sudo apt-get install texlive-latex-base texlive-xetex texlive-latex-recommended
+  - wget https://github.com/scottkosty/install-tl-ubuntu/raw/master/install-tl-ubuntu && chmod +x ./install-tl-ubuntu
+  - sudo ./install-tl-ubuntu
   - cpanm --notest Devel::Cover::Report::Coveralls IO::Socket::SSL Mojolicious
 
 script:
