@@ -6,7 +6,7 @@ perl:
 before_install:
   - sudo apt-get update
   - sudo apt-get install texlive-luatex
-  - cpanm  Devel::Cover::Report::Coveralls IO::Socket::SSL Mojolicious
+  - cpanm --notest Devel::Cover::Report::Coveralls IO::Socket::SSL Mojolicious
 
 script:
   - env PATH="/opt/texbin:$PATH" cover -test -report coveralls
