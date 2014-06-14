@@ -40,6 +40,7 @@ This class let's you create Swiss ESR payment slips in PDF format both for
 email and to to print on official ESR pre-prints forms.  The content is modeled after:
 
 L<https://www.postfinance.ch/content/dam/pf/de/doc/consult/templ/example/44218_templ_de_fr_it.pdf>
+L<https://www.postfinance.ch/content/dam/pf/de/doc/consult/manual/dlserv/inpayslip_isr_man_de.pdf>
 
 =head1 PROPERTIES
 
@@ -52,7 +53,7 @@ use Mojo::Util qw(slurp);
 use Mojo::Base -base;
 use Cwd;
 
-our $VERSION = '0.4.0';
+our $VERSION = '0.5.0';
 
 
 =head2 shiftRightMm
@@ -218,6 +219,13 @@ TEX_END
     $doc =~ s/\${(\S+?)}/$docSet{$1}/eg;
     for my $task (@{$self->tasks}) {
         my %cfg = %$task;
+        my $value = '042'; #ESR+
+        my $printValue;
+        if ($cfg{amount}){
+            $value = sprintf("01%010d",$cfg{amount}*100);
+            $value .= $self->$calcEsrChecksum($value);
+            $printValue = join '', map { $_ eq '.' ? '\hspace{1.43em}' :'\makebox[1.43em][c]{'.$_.'}' } split '',sprintf('%.2f',$cfg{amount});
+        }
         $cfg{senderAddressLaTeX} //= $self->senderAddressLaTeX;
         $cfg{root} = $root;
         $cfg{bs} = '\\';
@@ -228,9 +236,11 @@ TEX_END
             : '';
         my ($pc_base,$pc_nr) = $cfg{account} =~ /(\d\d)-(.+)/;
         $pc_nr =~ s/[^\d]//g;    
-        my $ref  = $cfg{referenceNumber}.$self->$calcEsrChecksum($cfg{referenceNumber});
-        $cfg{code} = '042>'
-            . sprintf('%016d',$ref)
+        my $ref  = $cfg{referenceNumber};
+        $ref = ('0' x (( length($ref) <= 15 ? 15 : 26 ) - length($ref))) . $ref;
+        $ref .= $self->$calcEsrChecksum($cfg{referenceNumber});
+        $cfg{code} = $value.'>'
+            . $ref
             . '+\hspace{0.1in}'
             . sprintf('%02d%07d',$pc_base,$pc_nr).'>';
         $cfg{referenceNumber} = '';
@@ -241,7 +251,7 @@ TEX_END
 \vspace*{\stretch{1}}
 \begin{picture}(0,0)
 DOC_END
-
+        
         $page .= <<'DOC_END';
 ${template}
 % the reference number ... positioning this properly is THE crucial element
@@ -253,8 +263,12 @@ ${template}
 \put(127,54){\parbox[t]{7cm}{\small  ${recipientAddressLaTeX}}}
 \put(30,61){\small ${account}}
 \put(92,61){\small ${account}}
-\put(200,69.5){\makebox[0pt][r]{\ocrb ${referenceNumber}}}
+\put(205,69.5){\small\makebox[0pt][r]{\ocrb ${referenceNumber}}}
 DOC_END
+        if ($printValue){
+            $page .= '\put(57.5,52.5){\ocrb\makebox[0pt][r]{ '.$printValue.'}}';
+            $page .= '\put(119,52.5){\ocrb\makebox[0pt][r]{ '.$printValue.'}}';
+        }
         $page .= <<'DOC_END' if $cfg{watermark};
 \put(200,110){\makebox[0pt][r]{\scriptsize ${watermark}}}
 DOC_END

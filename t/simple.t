@@ -47,7 +47,7 @@ is (ref $t,'Business::Payment::SwissESR', 'Instanciation');
 is (`which lualatex` =~ /lualatex/, 1, 'Is LuaLaTeX available?');
 
 $t->add(
-    amount => 44.40,
+    amount => 3949.75,
     account => '01-17546-3',
     recipientAddressLaTeX => <<'LaTeX_End',
  Peter Müller\newline
@@ -55,7 +55,19 @@ $t->add(
  4600 Olten
 LaTeX_End
     bodyLaTeX => 'the boddy of the bill in latex format',
-    referenceNumber => 3423,
+    referenceNumber => '1234567890123456',
+    watermark => 'secret marker',
+);
+
+$t->add(
+    account => '01-17546-3',
+    recipientAddressLaTeX => <<'LaTeX_End',
+ Peter Müller\newline
+ Haldenweg 12b\newline
+ 4600 Olten
+LaTeX_End
+    bodyLaTeX => 'the boddy of the bill in latex format',
+    referenceNumber => '123456789012345',
     watermark => 'secret marker',
 );
 
@@ -67,4 +79,7 @@ my $pdf2 = $t->renderPdf(showPaymentSlip=>1);
 
 is (substr($pdf2,0,4),'%PDF', 'PdfRender 2');
 
+open (my $o,'>/tmp/esrtest.pdf');
+print $o $pdf2;
+close $o;
 exit 0;
