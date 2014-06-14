@@ -17,6 +17,7 @@ Business::Payment::SwissESR - Class for creating Esr PDFs
  Florastrasse 21\newline
  4600 Olten
  LaTeX_End   
+    account => '01-17546-3',
  );
  $esr->add(    
     amount => 44.40,
@@ -53,7 +54,7 @@ use Mojo::Util qw(slurp);
 use Mojo::Base -base;
 use Cwd;
 
-our $VERSION = '0.5.0';
+our $VERSION = '0.5.1';
 
 
 =head2 shiftRightMm
@@ -84,6 +85,16 @@ A default sender address for invoice and payment slip. This can be overridden in
 =cut
 
 has senderAddressLaTeX => sub { 'no default' };
+
+=head2 account
+
+The default account to be printed on the payment slips.
+
+=cut
+
+has 'account';
+
+
 
 has tasks => sub {
     [];
@@ -146,7 +157,11 @@ You can call add multiple times to generate a buch of invoices in one pdf file.
 
 sub add {
     my $self = shift;
-    push @{$self->tasks}, {@_};
+    my $cfg = { @_ };
+    $cfg->{senderAddressLaTeX} //= $self->senderAddressLaTeX;
+    $cfg->{account} //= $self->account;
+
+    push @{$self->tasks}, $cfg;
 }
 
 # execute lualatex with the given source file and return the resulting pdf or die
@@ -206,7 +221,6 @@ my $makeEsrLaTeX = sub {
 \makeatletter
 \let\raggednewline=\@normalcr
 \makeatother
-\usepackage[parfill]{parskip}
 \newfontface\ocrb[Scale=1.005,Path = ${root}/ ]{ocrb10.otf}
 \setmainfont{DejaVu Sans Condensed}
 \usepackage{graphicx}
@@ -226,7 +240,6 @@ TEX_END
             $value .= $self->$calcEsrChecksum($value);
             $printValue = join '', map { $_ eq '.' ? '\hspace{1.43em}' :'\makebox[1.43em][c]{'.$_.'}' } split '',sprintf('%.2f',$cfg{amount});
         }
-        $cfg{senderAddressLaTeX} //= $self->senderAddressLaTeX;
         $cfg{root} = $root;
         $cfg{bs} = '\\';
         $cfg{template} = $electronic
@@ -249,7 +262,7 @@ TEX_END
         }
         my $page = <<'DOC_END';
 \vspace*{\stretch{1}}
-\begin{picture}(0,0)
+\noindent\begin{picture}(0,0)
 DOC_END
         
         $page .= <<'DOC_END';
@@ -275,7 +288,11 @@ DOC_END
 
         $page .= <<'DOC_END'; 
 \put(20,278){\begin{minipage}[t]{17cm}
+\setlength{\parindent}{0ex}
+
 ${senderAddressLaTeX}
+
+\setlength{\parskip}{1.2ex plus 0.5ex minus 0.2ex}
 
 \vspace*{2.3cm}
 \hspace*{10.7cm}\parbox[t]{6.5cm}{
