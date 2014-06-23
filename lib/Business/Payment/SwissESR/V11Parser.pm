@@ -26,6 +26,42 @@ for details (2.1 Gutschriftrecord Typ 3).
 
 =head2 $p->parse($string)
 
+parses v11 encoded data and returns an array of hashes where each hash represents a payment.
+
+      [ ...
+          {
+            'status' => 'reject',
+            'microfilmReference' => '000010086',
+            'transferDate' => '2012-09-26',
+            'payDate' => '2012-09-25',
+            'paymentLocation' => 'postoffice counter',
+            'creditDate' => '2012-09-27',
+            'submissionReference' => '5100  0100',
+            'paymentType' => 'payment',
+            'transactionCost' => '0.9',
+            'paymentSlip' => 'ESR+',
+            'amount' => '20',
+            'referenceNumber' => '326015262012',
+            'reseved' => '000000000',
+            'accontNumber' => '01-17546-3'
+          },
+          {
+            'status' => 'ok',
+            'microfilmReference' => '004570001',
+            'transferDate' => '2012-09-26',
+            'payDate' => '2012-09-26',
+            'paymentLocation' => 'online',
+            'creditDate' => '2012-09-27',
+            'submissionReference' => '0040  0400',
+            'paymentType' => 'payment',
+            'transactionCost' => '0',
+            'paymentSlip' => 'ESR',
+            'amount' => '40',
+            'referenceNumber' => '326015852012',
+            'reseved' => '000000000',
+            'accontNumber' => '01-17546-3'
+          },
+       ... ]
 
 =cut
 
@@ -191,7 +227,7 @@ S<Tobias Oetiker E<lt>tobi@oetiker.chE<gt>>
 
 =head1 HISTORY
 
- 2011-02-20 to 0.1 rewriten for DBI module
+ 2014-06-23 to 0.6 initial version
 
 =cut
 
