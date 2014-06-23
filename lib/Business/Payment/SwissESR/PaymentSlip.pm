@@ -1,15 +1,15 @@
-package Business::Payment::SwissESR;
+package Business::Payment::SwissESR::PaymentSlip;
 
 =head1 NAME
 
-Business::Payment::SwissESR - Class for creating Esr PDFs
+Business::Payment::SwissESR::PaymentSlip - Class for creating Esr PDFs
 
 =head1 SYNOPSYS
 
- use Esr;
+ use Business::Payment::SwissESR::PaymentSlip;
  my $nl = '\newline';
  my $bs = '\\';
- my $esr = Esr->new(
+ my $esr = Business::Payment::SwissESR::PaymentSlip->new(
     shiftRightMm =>
     shiftDownMm =>
     senderAddressLaTeX => <<'LaTeX_End'
@@ -54,7 +54,7 @@ use Mojo::Util qw(slurp);
 use Mojo::Base -base;
 use Cwd;
 
-our $VERSION = '0.5.1';
+our $VERSION = '0.6.0';
 
 
 =head2 shiftRightMm
@@ -123,8 +123,8 @@ sub DESTROY {
 # where to find our resource files
 
 has moduleBase => sub {
-    my $path = $INC{'Business/Payment/SwissESR.pm'};
-    $path =~ s/.pm$//;
+    my $path = $INC{'Business/Payment/SwissESR/PaymentSlip.pm'};
+    $path =~ s{/[^/]+$}{};
     return $path;
 };
 

@@ -5,7 +5,7 @@ use utf8;
 
 unshift @INC, sub {
     my(undef, $filename) = @_;
-    return () if $filename !~ /SwissESR/;
+    return () if $filename !~ /PaymentSlip/;
     if ( my $found = (grep { -e $_ } map { "$_/$filename" } grep { !ref } @INC)[0] ) {
                 local $/ = undef;
                 open(my $fh, '<', $found) || die("Can't read module file $found\n");
@@ -31,9 +31,9 @@ unshift @INC, sub {
 
 use Test::More tests => 5;
 
-use_ok 'Business::Payment::SwissESR';
+use_ok 'Business::Payment::SwissESR::PaymentSlip';
 
-my $t = Business::Payment::SwissESR->new(
+my $t = Business::Payment::SwissESR::PaymentSlip->new(
         shiftDownMm => 1,
         shiftRightMm=> 2,
         senderAddressLaTeX => <<'LaTeX_End');
@@ -42,7 +42,7 @@ my $t = Business::Payment::SwissESR->new(
  4600 Olten
 LaTeX_End
 
-is (ref $t,'Business::Payment::SwissESR', 'Instanciation');
+is (ref $t,'Business::Payment::SwissESR::PaymentSlip', 'Instanciation');
 
 is (`which lualatex` =~ /lualatex/, 1, 'Is LuaLaTeX available?');
 

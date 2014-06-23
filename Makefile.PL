@@ -6,7 +6,7 @@ use ExtUtils::MakeMaker;
 
 WriteMakefile(
   NAME         => 'Business::Payment::SwissESR',
-  VERSION_FROM => 'lib/Business/Payment/SwissESR.pm',
+  VERSION_FROM => 'lib/Business/Payment/SwissESR/PaymentSlip.pm',
   ABSTRACT     => 'Create PDF invoices according to the Swiss ESR standard',
   AUTHOR       => 'Tobias Oetiker <tobi@oetiker.ch>',
   LICENSE      => 'gpl_3',
