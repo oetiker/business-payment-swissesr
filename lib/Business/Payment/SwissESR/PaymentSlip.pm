@@ -54,8 +54,15 @@ use Mojo::Util qw(slurp);
 use Mojo::Base -base;
 use Cwd;
 
-our $VERSION = '0.6.1';
+our $VERSION = '0.7.0';
 
+=head2 luaLaTeX
+
+the lualatex binary to run
+
+=cut
+
+has luaLaTeX => sub {'lualatex'};
 
 =head2 shiftRightMm
 
@@ -175,7 +182,7 @@ my $runLaTeX = sub {
     close $out;
     my $cwd = cwd();
     chdir $tmpdir or die "Failed to chdir to $tmpdir";
-    open my $latex, '-|', 'lualatex','esr';
+    open my $latex, '-|', $self->luaLaTeX,'esr';
     chdir $cwd;
     my $latexOut = join '', <$latex>;
     close $latex;            
