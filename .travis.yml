@@ -5,7 +5,7 @@ perl:
 
 
 before_install:
-  - curl -L https://raw.githubusercontent.com/krlmlr/texlive-squashfs/master/out/texlive.tar.xz | tar xJC ~
+  - curl -L https://github.com/raphink/travis-texlive/releases/download/2015-07-14_05/texlive.tar.xz
   - cpanm --notest Devel::Cover::Report::Coveralls IO::Socket::SSL Mojolicious
 
 script:
