@@ -3,11 +3,11 @@ language: perl
 perl:
   - "5.18"
 
+
 before_install:
-  - wget https://github.com/scottkosty/install-tl-ubuntu/raw/master/install-tl-ubuntu && chmod +x ./install-tl-ubuntu
-  - sudo ./install-tl-ubuntu
+  - curl -L https://raw.githubusercontent.com/krlmlr/texlive-squashfs/master/out/texlive.tar.xz | tar xJC ~
   - cpanm --notest Devel::Cover::Report::Coveralls IO::Socket::SSL Mojolicious
 
 script:
-  - env PATH="/opt/texbin:$PATH" cover -test -report coveralls
+  - env PATH="$HOME/texlive/bin/x86_64-linux:$PATH" cover -test -report coveralls
 
