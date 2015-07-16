@@ -10,8 +10,8 @@ Business::Payment::SwissESR::PaymentSlip - Class for creating Esr PDFs
  my $nl = '\newline';
  my $bs = '\\';
  my $esr = Business::Payment::SwissESR::PaymentSlip->new(
-    shiftRightMm =>
-    shiftDownMm =>
+    shiftRightMm => $x,
+    shiftDownMm => $y,
     senderAddressLaTeX => <<'LaTeX_End'
  Oltner 2-Stunden Lauf\newline
  Florastrasse 21\newline
@@ -54,7 +54,7 @@ use Mojo::Util qw(slurp);
 use Mojo::Base -base;
 use Cwd;
 
-our $VERSION = '0.7.0';
+our $VERSION = '0.8.0';
 
 =head2 luaLaTeX
 
@@ -101,6 +101,15 @@ The default account to be printed on the payment slips.
 
 has 'account';
 
+=head2 preambleAddons
+
+Additional lines for the latex preable
+
+=cut
+
+has preambleAddons => sub {
+    return '';
+};
 
 
 has tasks => sub {
@@ -216,8 +225,10 @@ my $makeEsrLaTeX = sub {
     my %docSet = (
         root => $root,
         shiftDownMm => $self->shiftDownMm,
-        shiftRightMm => $self->shiftRightMm
+        shiftRightMm => $self->shiftRightMm,
+        preambleAddons => $self->preambleAddons
     ); 
+
     my $doc = <<'TEX_END';
 \nonstopmode
 \documentclass[10pt]{article}
@@ -234,6 +245,7 @@ my $makeEsrLaTeX = sub {
 \usepackage{calc}
 \pagestyle{empty}
 \setlength{\unitlength}{1mm}
+${preambleAddons}
 \begin{document}
 
 TEX_END

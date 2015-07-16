@@ -36,6 +36,7 @@ use_ok 'Business::Payment::SwissESR::PaymentSlip';
 my $t = Business::Payment::SwissESR::PaymentSlip->new(
         shiftDownMm => 1,
         shiftRightMm=> 2,
+        preambleAddons => '\usepackage{tabularx}',
         senderAddressLaTeX => <<'LaTeX_End');
  Oltner 2-Stunden Lauf\newline
  Florastrasse 21\newline
@@ -54,7 +55,12 @@ $t->add(
  Haldenweg 12b\newline
  4600 Olten
 LaTeX_End
-    bodyLaTeX => 'the boddy of the bill in latex format',
+    bodyLaTeX => <<'LaTeX_End',
+\begin{tabularx}{\textwidth}{@{}X@{ }r}
+Hello&22.0\\
+Aber&23.2\\
+\end{tabularx}
+LaTeX_End
     referenceNumber => '1234567890123456',
     watermark => 'secret marker',
 );
