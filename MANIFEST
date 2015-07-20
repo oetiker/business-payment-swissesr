@@ -2,6 +2,7 @@ LICENSE
 MANIFEST
 Makefile.PL
 README.md
+lib/Business/Payment/SwissESR.pm
 lib/Business/Payment/SwissESR/PaymentSlip.pm
 lib/Business/Payment/SwissESR/V11Parser.pm
 lib/Business/Payment/SwissESR/esrTemplate.pdf
