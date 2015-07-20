@@ -54,7 +54,7 @@ use Mojo::Util qw(slurp);
 use Mojo::Base -base;
 use Cwd;
 
-our $VERSION = '0.8.0';
+our $VERSION = '0.9.0';
 
 =head2 luaLaTeX
 
@@ -334,7 +334,6 @@ DOC_END
             }
         };
         $page =~ s/\${(\S+?)}/$resolve->($1)/eg;
-        $page =~ s/&/\\&/g;
         $doc .= $page;
     }
     $doc .= '\end{document}'."\n";
@@ -356,6 +355,21 @@ sub renderPdf {
     my $self = shift;
     my %args = @_;
     return $self->$runLaTeX($self->$makeEsrLaTeX($args{showPaymentSlip}));
+}
+
+=head2 $p->quoteLaTeX($str)
+
+return the string with 'magic' latex characters escaped (eg & -> \&).
+
+=cut
+
+sub quoteLaTeX {
+    my $self = shift if ref $_[0];
+    my $str = shift;
+    my @chars = qw(#  $  %  ^  &  _  {  }  ~  . %);
+    $str =~ s/\\/\\texbackslash/g;
+    $str =~ s/([#$%^&_}{~])/\$1/g;
+    return $str;        
 }
 
 1;

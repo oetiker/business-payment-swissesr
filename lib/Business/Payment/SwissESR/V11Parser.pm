@@ -68,7 +68,7 @@ parses v11 encoded data and returns an array of hashes where each hash represent
 use Mojo::Base -base;
 
 use vars qw($VERSION);
-our $VERSION = '0.8.0';
+our $VERSION = '0.9.0';
 
 # all the magic of this parser is in setting up the right infrastructure
 # so that we can blaze through the file with just a few lines of code
