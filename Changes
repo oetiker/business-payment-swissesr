@@ -1,0 +1,9 @@
+Revision history for Business::Payment::SwissESR
+
+0.10.0 2015-07-22
+  - revamped positioning system, shifting only the payment slip now
+  - added tiny dot 3cm from the bottom and 3cm from the left border of the
+    paper to assist with positioning
+  - provide scale control
+  - bodyLaTeX now does not contain an address anymore.
+  - text will wrap to the next page automatically.

@@ -19,7 +19,7 @@ Business::Payment::SwissESR::PaymentSlip - Class for creating Esr PDFs
  LaTeX_End   
     account => '01-17546-3',
  );
- $esr->add(    
+ $esr->add(
     amount => 44.40,
     account => '01-17546-3',
     senderAddressLaTeX => 'Override',
@@ -54,7 +54,7 @@ use Mojo::Util qw(slurp);
 use Mojo::Base -base;
 use Cwd;
 
-our $VERSION = '0.9.2';
+our $VERSION = '0.10.0';
 
 =head2 luaLaTeX
 
@@ -71,7 +71,7 @@ payment slip.  Make sure you get one of the official transparencies to
 verify that your printouts look ok.  Even that may not suffice, to be
 sure, send a bunch of printouts for verification to Swiss Post.
 
-With this property you can shift the entire printout to the right in milimeters.
+With this property you can shift the payment slip right in milimeters.
 
 =cut
 
@@ -79,11 +79,20 @@ has shiftRightMm => 0;
 
 =head2 shiftDownMm
 
-This is for shifting the entire printout down.
+This is for shifting the payment slip down.
 
 =cut
 
 has shiftDownMm => 0;
+
+=head2 scale
+
+Some printers seem to not be able to accurately scale the output ... this lets you
+scale the payment slip in the oposite direction.
+
+=cut
+
+has scale => 0;
 
 =head2 senderAddressLaTeX
 
@@ -159,7 +168,8 @@ Adds an invoice. Specify the following properties for each invoice:
  Haldenweg 12b\newline
  4600 Olten
  LaTeX_End
-    bodyLaTeX => 'the boddy of the bill in latex format',
+    bodyLaTeX => 'complete body of the letter including all addrssing',
+   
     referenceNumber => 3423,
 
 these two properties are optional
@@ -194,7 +204,7 @@ my $runLaTeX = sub {
     open my $latex, '-|', $self->luaLaTeX,'esr';
     chdir $cwd;
     my $latexOut = join '', <$latex>;
-    close $latex;            
+    close $latex; 
     if ($? != 0){
         die $latexOut;
     }
@@ -226,30 +236,29 @@ my $makeEsrLaTeX = sub {
         root => $root,
         shiftDownMm => $self->shiftDownMm,
         shiftRightMm => $self->shiftRightMm,
+        scale => $self->scale,
         preambleAddons => $self->preambleAddons
     ); 
 
     my $doc = <<'TEX_END';
 \nonstopmode
 \documentclass[10pt]{article}
-\usepackage[a4paper,top=${shiftDownMm}mm,bottom=-${shiftDownMm}mm,left=${shiftRightMm}mm,right=-${shiftRightMm}mm]{geometry}
+\usepackage[a4paper,left=1cm]{geometry}
 \usepackage{color}
 \usepackage{fontspec}
-\usepackage[raggedrightboxes]{ragged2e}
-\makeatletter
-\let\raggednewline=\@normalcr
-\makeatother
-\newfontface\ocrb[Scale=1.005,Path = ${root}/ ]{ocrb10.otf}
+\newfontface\ocrb[Path = ${root}/ ]{ocrb10.otf}
 \setmainfont{DejaVu Sans Condensed}
 \usepackage{graphicx}
 \usepackage{calc}
 \pagestyle{empty}
 \setlength{\unitlength}{1mm}
+\setlength{\parindent}{0ex}
+\setlength{\parskip}{1ex plus 0.5ex minus 0.2ex}
 ${preambleAddons}
 \begin{document}
-
 TEX_END
     $doc =~ s/\${(\S+?)}/$docSet{$1}/eg;
+
     for my $task (@{$self->tasks}) {
         my %cfg = %$task;
         my $value = '042'; #ESR+
@@ -262,9 +271,8 @@ TEX_END
         $cfg{root} = $root;
         $cfg{bs} = '\\';
         $cfg{template} = $electronic
-            ? '\put(0,1){\includegraphics{'.$root.'/esrTemplate.pdf}}'
-              .'\put(8,68){\parbox[b]{8cm}{\flushleft \textbf{\color{red}'
-              .'Dieser Einzahlungsschein ist nur für elektronische Einzahlungen geeignet!}}}' 
+            ? '\put(0,0){\includegraphics{'.$root.'/esrTemplate.pdf}}'
+              .'\put(65,38){\textbf{\color{red}Dieser Einzahlungsschein ist nur für elektronische Einzahlungen geeignet!}}' 
             : '';
         my ($pc_base,$pc_nr) = $cfg{account} =~ /(\d\d)-(.+)/;
         $pc_nr =~ s/[^\d]//g;    
@@ -279,48 +287,40 @@ TEX_END
         while ($ref =~ s/(\d{1,5})$//){
             $cfg{referenceNumber} = $1 . '\hspace{0.1in}' . $cfg{referenceNumber};
         }
+
         my $page = <<'DOC_END';
-\vspace*{\stretch{1}}
-\noindent\begin{picture}(0,0)
+\newgeometry{bottom=11cm}% shorten the first page to make room for the bill at the bottom
+\raisebox{-\paperheight+1in+\voffset+\topmargin+\headheight+\headsep+\baselineskip - ${shiftDownMm}mm}[0pt][0pt]{%
+\makebox[0pt][l]{\hspace*{-\hoffset}\hspace{-\oddsidemargin}\hspace{-1in}\hspace{${shiftRightMm}mm}\scalebox{${scale}}{\begin{picture}(0,0)
+\put(180,29){\rule{0.5pt}{0.5pt}}
 DOC_END
-        
+
+        $page =~ s/\${(\S+?)}/$docSet{$1}/eg;
+
         $page .= <<'DOC_END';
 ${template}
 % the reference number ... positioning this properly is THE crucial element
-\put(204,18){\makebox[0pt][r]{\ocrb \fontsize{10pt}{16pt}\selectfont ${code}}}
+\put(202.5,17){\makebox[0pt][r]{\ocrb \fontsize{10pt}{16pt}\selectfont ${code}}}
 \put(8,90){\parbox[t]{5cm}{\small ${senderAddressLaTeX}}}
 \put(63,90){\parbox[t]{8cm}{\small ${senderAddressLaTeX}}}
 \put(8,41){\tiny ${referenceNumber}}
 \put(8,35){\parbox[t]{5cm}{\small ${recipientAddressLaTeX}}}
 \put(127,54){\parbox[t]{7cm}{\small  ${recipientAddressLaTeX}}}
-\put(30,61){\small ${account}}
-\put(92,61){\small ${account}}
+\put(26,60.5){\small ${account}}
+\put(88,60.5){\small ${account}}
 \put(205,69.5){\small\makebox[0pt][r]{\ocrb ${referenceNumber}}}
 DOC_END
         if ($printValue){
-            $page .= '\put(57.5,52.5){\ocrb\makebox[0pt][r]{ '.$printValue.'}}';
-            $page .= '\put(119,52.5){\ocrb\makebox[0pt][r]{ '.$printValue.'}}';
+            $page .= '\put(57.4,52){\ocrb\makebox[0pt][r]{ '.$printValue.'}}';
+            $page .= '\put(118.4,52){\ocrb\makebox[0pt][r]{ '.$printValue.'}}';
         }
         $page .= <<'DOC_END' if $cfg{watermark};
 \put(200,110){\makebox[0pt][r]{\scriptsize ${watermark}}}
 DOC_END
 
-        $page .= <<'DOC_END'; 
-\put(20,278){\begin{minipage}[t]{17cm}
-\setlength{\parindent}{0ex}
-
-${senderAddressLaTeX}
-
-\setlength{\parskip}{1.2ex plus 0.5ex minus 0.2ex}
-
-\vspace*{2.3cm}
-\hspace*{10.7cm}\parbox[t]{6.5cm}{
-  ${recipientAddressLaTeX}
-}
-
-\vspace*{-0.5cm}
-${bodyLaTeX}\end{minipage}}
-\end{picture}
+        $page .= <<'DOC_END';
+\end{picture}}}}%
+${bodyLaTeX}
 \newpage
 
 DOC_END
@@ -366,7 +366,6 @@ return the string with 'magic' latex characters escaped (eg & -> \&).
 sub quoteLaTeX {
     my $self = shift if ref $_[0];
     my $str = shift;
-    my @chars = qw(#  $  %  ^  &  _  {  }  ~  . %);
     $str =~ s/\\/\\texbackslash/g;
     $str =~ s/([#$%^&_}{~])/\$1/g;
     return $str;        
