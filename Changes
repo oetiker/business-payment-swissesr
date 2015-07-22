@@ -1,5 +1,9 @@
 Revision history for Business::Payment::SwissESR
 
+0.11.0 2015-07-22
+  - use enlargethispage with a negative value to
+    make sure the payment slip stays protected from normal page content
+
 0.10.0 2015-07-22
   - revamped positioning system, shifting only the payment slip now
   - added tiny dot 3cm from the bottom and 3cm from the left border of the

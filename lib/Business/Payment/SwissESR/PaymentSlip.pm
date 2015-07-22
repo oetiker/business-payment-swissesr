@@ -54,7 +54,7 @@ use Mojo::Util qw(slurp);
 use Mojo::Base -base;
 use Cwd;
 
-our $VERSION = '0.10.0';
+our $VERSION = '0.11.0';
 
 =head2 luaLaTeX
 
@@ -243,7 +243,7 @@ my $makeEsrLaTeX = sub {
     my $doc = <<'TEX_END';
 \nonstopmode
 \documentclass[10pt]{article}
-\usepackage[a4paper,left=1cm]{geometry}
+\usepackage[a4paper,margin=2cm,top=1.5cm,bottom=1.5cm]{geometry}
 \usepackage{color}
 \usepackage{fontspec}
 \newfontface\ocrb[Path = ${root}/ ]{ocrb10.otf}
@@ -289,7 +289,6 @@ TEX_END
         }
 
         my $page = <<'DOC_END';
-\newgeometry{bottom=11cm}% shorten the first page to make room for the bill at the bottom
 \raisebox{-\paperheight+1in+\voffset+\topmargin+\headheight+\headsep+\baselineskip - ${shiftDownMm}mm}[0pt][0pt]{%
 \makebox[0pt][l]{\hspace*{-\hoffset}\hspace{-\oddsidemargin}\hspace{-1in}\hspace{${shiftRightMm}mm}\scalebox{${scale}}{\begin{picture}(0,0)
 \put(180,29){\rule{0.5pt}{0.5pt}}
@@ -320,6 +319,10 @@ DOC_END
 
         $page .= <<'DOC_END';
 \end{picture}}}}%
+\enlargethispage{-10cm}%
+%\begin{figure}[!btp]
+%\vspace{10cm}
+%\end{figure}
 ${bodyLaTeX}
 \newpage
 
