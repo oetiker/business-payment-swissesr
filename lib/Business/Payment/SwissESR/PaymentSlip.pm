@@ -54,7 +54,7 @@ use Mojo::Util qw(slurp);
 use Mojo::Base -base;
 use Cwd;
 
-our $VERSION = '0.11.0';
+our $VERSION = '0.11.1';
 
 =head2 luaLaTeX
 
@@ -92,7 +92,7 @@ scale the payment slip in the oposite direction.
 
 =cut
 
-has scale => 0;
+has scale => 1;
 
 =head2 senderAddressLaTeX
 
@@ -205,7 +205,7 @@ my $runLaTeX = sub {
     chdir $cwd;
     my $latexOut = join '', <$latex>;
     close $latex; 
-    if ($? != 0){
+    if (not -e $tmpdir.'/esr.pdf' or -z $tmpdir.'/esr.pdf'){
         die $latexOut;
     }
     my $pdf = slurp $tmpdir.'/esr.pdf';
@@ -310,8 +310,8 @@ ${template}
 \put(205,69.5){\small\makebox[0pt][r]{\ocrb ${referenceNumber}}}
 DOC_END
         if ($printValue){
-            $page .= '\put(57.4,52){\ocrb\makebox[0pt][r]{ '.$printValue.'}}';
-            $page .= '\put(118.4,52){\ocrb\makebox[0pt][r]{ '.$printValue.'}}';
+            $page .= '\put(57,51){\ocrb\makebox[0pt][r]{ '.$printValue.'}}';
+            $page .= '\put(118,51){\ocrb\makebox[0pt][r]{ '.$printValue.'}}';
         }
         $page .= <<'DOC_END' if $cfg{watermark};
 \put(200,110){\makebox[0pt][r]{\scriptsize ${watermark}}}
