@@ -16,7 +16,7 @@ Business::Payment::SwissESR::PaymentSlip - Class for creating Esr PDFs
  Oltner 2-Stunden Lauf\newline
  Florastrasse 21\newline
  4600 Olten
- LaTeX_End   
+ LaTeX_End
     account => '01-17546-3',
  );
  $esr->add(
@@ -32,7 +32,7 @@ Business::Payment::SwissESR::PaymentSlip - Class for creating Esr PDFs
     referenceNumber => 3423,
     watermark => 'secret marker',
  );
- 
+
  my $pdf = $esr->renderPdf(showPaymentSlip=>1);
 
 =head1 DESCRIPTION
@@ -169,7 +169,7 @@ Adds an invoice. Specify the following properties for each invoice:
  4600 Olten
  LaTeX_End
     bodyLaTeX => 'complete body of the letter including all addrssing',
-   
+
     referenceNumber => 3423,
 
 these two properties are optional
@@ -191,7 +191,7 @@ sub add {
 }
 
 # execute lualatex with the given source file and return the resulting pdf or die
-        
+
 my $runLaTeX = sub {
     my $self = shift;
     my $src = shift;
@@ -204,16 +204,16 @@ my $runLaTeX = sub {
     open my $latex, '-|', $self->luaLaTeX,'esr';
     chdir $cwd;
     my $latexOut = join '', <$latex>;
-    close $latex; 
+    close $latex;
     if (not -e $tmpdir.'/esr.pdf' or -z $tmpdir.'/esr.pdf'){
         die $latexOut;
     }
     my $pdf = slurp $tmpdir.'/esr.pdf';
-    return $pdf;   
+    return $pdf;
 };
 
 # this is that very cool algorithm to calculate the checksum
-# used in the 
+# used in the
 
 my $calcEsrChecksum = sub {
     my $self = shift;
@@ -238,7 +238,7 @@ my $makeEsrLaTeX = sub {
         shiftRightMm => $self->shiftRightMm,
         scale => $self->scale,
         preambleAddons => $self->preambleAddons
-    ); 
+    );
 
     my $doc = <<'TEX_END';
 \nonstopmode
@@ -272,10 +272,10 @@ TEX_END
         $cfg{bs} = '\\';
         $cfg{template} = $electronic
             ? '\put(0,0){\includegraphics{'.$root.'/esrTemplate.pdf}}'
-              .'\put(65,38){\textbf{\color{red}Dieser Einzahlungsschein ist nur für elektronische Einzahlungen geeignet!}}' 
+              .'\put(65,8){\textbf{\color{red}Dieser Einzahlungsschein ist nur für elektronische Einzahlungen geeignet!}}' 
             : '';
         my ($pc_base,$pc_nr) = $cfg{account} =~ /(\d\d)-(.+)/;
-        $pc_nr =~ s/[^\d]//g;    
+        $pc_nr =~ s/[^\d]//g;
         my $ref  = $cfg{referenceNumber};
         $ref = ('0' x (( length($ref) <= 15 ? 15 : 26 ) - length($ref))) . $ref;
         $ref .= $self->$calcEsrChecksum($cfg{referenceNumber});
@@ -327,12 +327,12 @@ ${bodyLaTeX}
 \newpage
 
 DOC_END
-        my $resolve = sub { 
-            my $v = shift; 
-            if (not defined $cfg{$v}){ 
+        my $resolve = sub {
+            my $v = shift;
+            if (not defined $cfg{$v}){
                 print STDERR "No data for $v\n"; return ''
-            } 
-            else { 
+            }
+            else {
                 return $cfg{$v}
             }
         };
@@ -371,7 +371,7 @@ sub quoteLaTeX {
     my $str = shift;
     $str =~ s/\\/\\texbackslash/g;
     $str =~ s/([#$%^&_}{~])/\$1/g;
-    return $str;        
+    return $str;
 }
 
 1;
@@ -407,7 +407,7 @@ S<Tobias Oetiker E<lt>tobi@oetiker.chE<gt>>
 =head1 HISTORY
 
  2014-06-08 to 0.2 extracted from o2h
- 
+
 =cut
 
 # Emacs Configuration
@@ -420,4 +420,3 @@ S<Tobias Oetiker E<lt>tobi@oetiker.chE<gt>>
 # End:
 #
 # vi: sw=4 et
-

@@ -17,7 +17,7 @@ L<Business::Payment::SwissESR::PaymentSlip> for creating pdf payment slips.
 
 =cut
 
-our $VERSION = '0.11.1';
+our $VERSION = '0.11.2';
 
 1;
 
