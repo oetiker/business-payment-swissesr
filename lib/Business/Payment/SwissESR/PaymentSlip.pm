@@ -54,7 +54,7 @@ use Mojo::Util qw(slurp);
 use Mojo::Base -base;
 use Cwd;
 
-our $VERSION = '0.11.1';
+our $VERSION = '0.12.0';
 
 =head2 luaLaTeX
 
@@ -272,7 +272,7 @@ TEX_END
         $cfg{bs} = '\\';
         $cfg{template} = $electronic
             ? '\put(0,0){\includegraphics{'.$root.'/esrTemplate.pdf}}'
-              .'\put(65,8){\textbf{\color{red}Dieser Einzahlungsschein ist nur für elektronische Einzahlungen geeignet!}}' 
+              .'\put(65,8){\textbf{\color{red}Dieser Einzahlungsschein ist nur für elektronische Einzahlungen geeignet!}}'
             : '';
         my ($pc_base,$pc_nr) = $cfg{account} =~ /(\d\d)-(.+)/;
         $pc_nr =~ s/[^\d]//g;

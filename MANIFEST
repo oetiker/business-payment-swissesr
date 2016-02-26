@@ -10,5 +10,6 @@ lib/Business/Payment/SwissESR/esrTemplate.pdf
 lib/Business/Payment/SwissESR/ocrb10.otf
 lib/Business/Payment/SwissESR/ocrb10.txt
 t/paymentslip.t
-t/test.v11
+t/test3.v11
+t/test4.v11
 t/v11parser.t

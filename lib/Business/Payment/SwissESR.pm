@@ -8,7 +8,7 @@ Business::Payment::SwissESR - Modules for handling Swiss Postfinance ESR
 
  use Business::Payment::SwissESR::V11Parser;
  use Business::Payment::SwissESR::PaymentSlip;
- 
+
 =head1 DESCRIPTION
 
 The package contains two modules. L<Business::Payment::SwissESR::V11Parser>
@@ -17,7 +17,7 @@ L<Business::Payment::SwissESR::PaymentSlip> for creating pdf payment slips.
 
 =cut
 
-our $VERSION = '0.11.2';
+our $VERSION = '0.12.0';
 
 1;
 
@@ -65,4 +65,3 @@ S<Tobias Oetiker E<lt>tobi@oetiker.chE<gt>>
 # End:
 #
 # vi: sw=4 et
-

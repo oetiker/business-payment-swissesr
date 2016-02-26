@@ -20,13 +20,15 @@ the form of so called v11 files. They contain information about the paiments rec
 class transforms this information into easily accessible data.
 
 See records L<https://www.postfinance.ch/content/dam/pf/de/doc/consult/manual/dldata/efin_recdescr_man_de.pdf>
-for details (2.1 Gutschriftrecord Typ 3).
+for details (2.1 Gutschriftrecord Typ 3 and 2.3 Gutschriftrecord Typ 4).
 
 =head1 METHODS
 
 =head2 $p->parse($string)
 
 parses v11 encoded data and returns an array of hashes where each hash represents a payment.
+
+typ3
 
       [ ...
           {
@@ -63,12 +65,35 @@ parses v11 encoded data and returns an array of hashes where each hash represent
           },
        ... ]
 
+typ4
+    [ ...
+        {
+        'paymentType' => 'payment',
+          'currency2' => 'CHF',
+          'payDate' => '2016-02-25',
+          'amount' => '64',
+          'paymentSlip' => 'ESR CHF',
+          'microfilmReference' => '-',
+          'currency' => 'CHF',
+          'status' => 'ok',
+          'accontNumber' => '01-89079-7',
+          'transferDate' => '2016-02-25',
+          'deliveryType' => 'original',
+          'paymentLocation' => 'eurosic',
+          'paymentSource' => 'normal',
+          'creditDate' => '2016-02-26',
+          'submissionReference' => '00020160225007602125808164000000012',
+          'transactionCost' => '0',
+          'referenceNumber' => '9320'
+        }
+    ]
+
 =cut
 
 use Mojo::Base -base;
 
 use vars qw($VERSION);
-our $VERSION = '0.11.1';
+our $VERSION = '0.12.0';
 
 # all the magic of this parser is in setting up the right infrastructure
 # so that we can blaze through the file with just a few lines of code
@@ -79,7 +104,14 @@ my $date = {
     rx => qr/(..)(..)(..)/,
     su => sub {
         return ((2000+$_[0])."-$_[1]-$_[2]");
-    }  
+    }
+};
+my $date4 = {
+    w => 8,
+    rx => qr/(....)(..)(..)/,
+    su => sub {
+        return "$_[0]-$_[1]-$_[2]";
+    }
 };
 
 my %src = (
@@ -95,105 +127,200 @@ my %type = (
 );
 
 # the v11 format is a fixed with data format. in the format structure
-# we have the width (w) of each column as well as an optional regular expression 
-my @format = (
-    paymentSlip => {
-        w => 1,
-        su => sub {
-            return $_[0] ? 'ESR+' : 'ESR';
+# we have the width (w) of each column as well as an optional regular expression
+my $GSR = {
+    typ3 => [
+        paymentSlip => {
+            w => 1,
+            su => sub {
+                return $_[0] ? 'ESR+' : 'ESR';
+            }
+        },
+        paymentLocation => {
+            w => 1,
+            su => sub {
+                return $src{$_[0]} || $_[0];
+            }
+        },
+        paymentType => {
+            w => 1,
+            su => sub {
+                return $type{$_[0]} || $_[0];
+            }
+        },
+        accontNumber => {
+            w => 9,
+            rx => qr/(..)0*(.+)(.)/,
+            su => sub {
+                return "$_[0]-$_[1]-$_[2]";
+            }
+        },
+        referenceNumber => {
+            w => 27,
+            rx => qr/(.+)./,
+            su => sub {
+                my $ret = shift;
+                $ret =~ s/^0+//;
+                return $ret;
+            }
+        },
+        amount => {
+            w => 10,
+            su => sub {
+                return int($_[0]) / 100;
+            }
+        },
+        submissionReference => 10,
+        payDate => $date,
+        transferDate => $date,
+        creditDate => $date,
+        microfilmReference => 9,
+        status => {
+            w => 1,
+            su => sub {
+                return $_[0] ? "reject" : "ok"
+            }
+        },
+        reseved => 9,
+        transactionCost => {
+            w => 4,
+            su => sub {
+                return int($_[0]) / 100;
+            }
         }
-    },
-    paymentLocation => {
-        w => 1,
-        su => sub {
-            return $src{$_[0]} || $_[0];
+    ],
+    typ4 => [
+        paymentSlip => {
+            w => 1,
+            su => sub {
+                return [
+                    'ESR CHF',
+                    'ESR+ CHF',
+                    'ESR EUR',
+                    'ESR+ EUR'
+                ]->[$_[0]];
+            }
+        },
+        paymentSource => {
+            w => 1,
+            su => sub {
+                return [ undef,'normal','nachnahme','ownaccount']->[$_[0]] // 'Unknown Source '.$_[0];
+            }
+        },
+        paymentType => {
+            w => 1,
+            su => sub {
+                return [undef,'payment','refund','correction']->[$_[0]] // 'Unknown Type '.$_[0];
+            }
+        },
+        paymentLocation => {
+            w => 2,
+            su => sub {
+                return {
+                    '01' => 'postoffice counter',
+                    '02' => 'zag/dag',
+                    '03' => 'online',
+                    '04' => 'eurosic'
+                }->{$_[0]} // 'Unknown Location '.$_[0];
+            }
+        },
+        deliveryType => {
+            w => 1,
+            su => sub {
+                return [undef,'original','reko','test']->[$_[0]] // 'Unkown Delivery '.$_[0];
+            }
+        },
+        accontNumber => {
+            w => 9,
+            rx => qr/(..)0*(.+)(.)/,
+            su => sub {
+                return "$_[0]-$_[1]-$_[2]";
+            }
+        },
+        referenceNumber => {
+            w => 27,
+            rx => qr/^0+(.+)./,
+        },
+        currency => 3,
+        amount => {
+            w => 12,
+            su => sub {
+                return int($_[0]) / 100;
+            }
+        },
+        submissionReference => 35,
+        payDate => $date4,
+        transferDate => $date4,
+        creditDate => $date4,
+        status => {
+            w => 1,
+            su => sub {
+                return $_[0] ? "reject" : "ok"
+            }
+        },
+        currency2 => 3,
+        transactionCost => {
+            w => 6,
+            su => sub {
+                return int($_[0]) / 100;
+            }
         }
-    },
-    paymentType => {
-        w => 1,
-        su => sub {
-            return $type{$_[0]} || $_[0];
-        }
-    },
-    accontNumber => {
-        w => 9,
-        rx => qr/(..)0*(.+)(.)/,
-        su => sub {
-            return "$_[0]-$_[1]-$_[2]";
-        }
-    },
-    referenceNumber => {
-        w => 27,
-        rx => qr/(.+)./,
-        su => sub {
-            my $ret = shift;
-            $ret =~ s/^0+//;
-            return $ret;
-        }
-    },
-    amount => {
-        w => 10,
-        su => sub {
-            return int($_[0]) / 100;
-        }
-    },
-    submissionReference => 10,
-    payDate => $date,
-    transferDate => $date,
-    creditDate => $date,
-    microfilmReference => 9,
-    status => {
-        w => 1,
-        su => sub {
-            return $_[0] ? "reject" : "ok"   
-        }
-    },
-    reseved => 9,
-    transactionCost => {
-        w => 4,
-        su => sub {
-            return int($_[0]) / 100;
-        }
+    ]
+};
+my %parser;
+
+for my $type (keys %$GSR){
+    my @keys;
+    my $parser = '^';
+    my %proc;
+
+    while (my $key = shift @{$GSR->{$type}}){
+        my $val = shift @{$GSR->{$type}};
+        my $w = $val;
+       my $rx = qr/(.*)/;
+       my $su = sub { return shift };
+       if (ref $val){
+          $w = $val->{w} || die "$key -> w - width property is mandatory";
+          $su = $val->{su} // $su;
+          $rx = $val->{rx} // $rx;
+       }
+       push @keys, $key;
+       $parser .= "(.{$w})";
+       $proc{$key} = {
+           rx => $rx,
+           su => $su
+       }
     }
-);
-
-my @keys;
-my $parse = '^';
-my %proc;
-
-while (my $key = shift @format){
-   my $val = shift @format;
-   my $w = $val;
-   my $rx = qr/(.*)/;
-   my $su = sub { return shift };
-   if (ref $val){
-      $w = $val->{w};
-      $su = $val->{su};
-      $rx = $val->{rx} if $val->{rx};
-   }
-   push @keys, $key;
-   $parse .= "(.{$w})";
-   $proc{$key} = {
-       rx => $rx,
-       su => $su
-   }
+    $parser .= '$';
+    $parser{$type} = {
+        rx => $parser,
+        proc => \%proc,
+        keys => \@keys
+    };
 }
-$parse .= '$';
 
 sub parse {
     my $self = shift;
     my @data = split /[\r?\n]/, shift;
     my @all;
-    for (@data){
-        s/\s+$//;
-        my %d;
-        @d{@keys} = /$parse/;
-        next unless defined $d{transactionCost};
-        for my $key (keys %proc){
-            $d{$key} = $proc{$key}{su}( $d{$key} =~ $proc{$key}{rx} );
+    for my $line (@data){
+        $line =~ s/\s+$//;
+        for my $type (keys %parser){
+            my %d;
+            my $parse = $parser{$type}{rx};
+            my @keys = @{$parser{$type}{keys}};
+            @d{@keys} = $line =~ /$parse/;
+            $d{microfilmReference} //= '-';
+            next if not defined $d{transactionCost};
+            for my $key (keys %{$parser{$type}{proc}}){
+                if (my $su =  $parser{$type}{proc}{$key}{su} ){
+                    $d{$key} = $su->( $d{$key} =~ $parser{$type}{proc}{$key}{rx} );
+                }
+            }
+            push @all,\%d;
+            last;
         }
-        push @all,\%d;
-    }        
+    }
     return \@all;
 }
 
@@ -244,4 +371,3 @@ S<Tobias Oetiker E<lt>tobi@oetiker.chE<gt>>
 # End:
 #
 # vi: sw=4 et
-
