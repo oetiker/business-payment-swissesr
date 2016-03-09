@@ -1,5 +1,8 @@
 Revision history for Business::Payment::SwissESR
 
+0.13.0 2016-03-09
+  - optimized placement of text on esr form
+  
 0.12.0 2016-02-26
   - learn how to parse typ4 records
 

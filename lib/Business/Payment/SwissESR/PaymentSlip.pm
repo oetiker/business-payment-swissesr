@@ -54,7 +54,7 @@ use Mojo::Util qw(slurp);
 use Mojo::Base -base;
 use Cwd;
 
-our $VERSION = '0.12.0';
+our $VERSION = '0.13.0';
 
 =head2 luaLaTeX
 
@@ -285,7 +285,7 @@ TEX_END
             . sprintf('%02d%07d',$pc_base,$pc_nr).'>';
         $cfg{referenceNumber} = '';
         while ($ref =~ s/(\d{1,5})$//){
-            $cfg{referenceNumber} = $1 . '\hspace{0.1in}' . $cfg{referenceNumber};
+            $cfg{referenceNumber} = $1 . '\hspace{1ex}' . $cfg{referenceNumber};
         }
 
         my $page = <<'DOC_END';
@@ -300,18 +300,18 @@ DOC_END
 ${template}
 % the reference number ... positioning this properly is THE crucial element
 \put(202.5,17){\makebox[0pt][r]{\ocrb \fontsize{10pt}{16pt}\selectfont ${code}}}
-\put(8,90){\parbox[t]{5cm}{\small ${senderAddressLaTeX}}}
-\put(63,90){\parbox[t]{8cm}{\small ${senderAddressLaTeX}}}
-\put(8,41){\tiny ${referenceNumber}}
-\put(8,35){\parbox[t]{5cm}{\small ${recipientAddressLaTeX}}}
-\put(127,54){\parbox[t]{7cm}{\small  ${recipientAddressLaTeX}}}
-\put(26,60.5){\small ${account}}
-\put(88,60.5){\small ${account}}
-\put(205,69.5){\small\makebox[0pt][r]{\ocrb ${referenceNumber}}}
+\put(7,93){\parbox[t]{5cm}{\small ${senderAddressLaTeX}}}
+\put(63,93){\parbox[t]{8cm}{\small ${senderAddressLaTeX}}}
+\put(7,41){\scriptsize ${referenceNumber}}
+\put(7,35){\parbox[t]{5cm}{\footnotesize ${recipientAddressLaTeX}}}
+\put(127,54){\parbox[t]{7cm}{\footnotesize  ${recipientAddressLaTeX}}}
+\put(28,60.5){\small ${account}}
+\put(89,60.5){\small ${account}}
+\put(205,69){\small\makebox[0pt][r]{\ocrb ${referenceNumber}}}
 DOC_END
         if ($printValue){
-            $page .= '\put(57,51){\ocrb\makebox[0pt][r]{ '.$printValue.'}}';
-            $page .= '\put(118,51){\ocrb\makebox[0pt][r]{ '.$printValue.'}}';
+            $page .= '\put(58,51.5){\ocrb\makebox[0pt][r]{ '.$printValue.'}}';
+            $page .= '\put(119,51.5){\ocrb\makebox[0pt][r]{ '.$printValue.'}}';
         }
         $page .= <<'DOC_END' if $cfg{watermark};
 \put(200,110){\makebox[0pt][r]{\scriptsize ${watermark}}}

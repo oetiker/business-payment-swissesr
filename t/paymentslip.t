@@ -16,7 +16,7 @@ unshift @INC, sub {
                 # NB this introduces no extra linefeeds so D::C's line numbers
                 # in reports match the file on disk
                 $module_text =~ s/(.*?package\s+\S+)(.*)__END__/$1sub main {$2} main();/s;
-                
+
                 # filehandle on the scalar
                 open ($fh, '<', \$module_text);
 
@@ -29,7 +29,7 @@ unshift @INC, sub {
     }
 };
 
-use Test::More tests => 5;
+use Test::More tests => 6;
 
 use_ok 'Business::Payment::SwissESR::PaymentSlip';
 
@@ -85,7 +85,11 @@ my $pdf2 = $t->renderPdf(showPaymentSlip=>1);
 
 is (substr($pdf2,0,4),'%PDF', 'PdfRender 2');
 
-open (my $o,'>/tmp/esrtest.pdf');
+my $file = '/tmp/esrtest.'.$$.'.pdf';
+open (my $o,'>',$file);
 print $o $pdf2;
 close $o;
-exit 0;
+
+cmp_ok (`pdftotext -enc UTF-8 $file - | perl -Mutf8 -pe 's/[^"0-9a-z]//sg'|md5sum`, '=~', '4d9caec9fff3de1771483a731959c75f','content check');
+#system "gnome-open $file";
+unlink $file;
