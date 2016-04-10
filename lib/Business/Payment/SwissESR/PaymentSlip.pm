@@ -303,8 +303,8 @@ ${template}
 \put(7,93){\parbox[t]{5cm}{\small ${senderAddressLaTeX}}}
 \put(63,93){\parbox[t]{8cm}{\small ${senderAddressLaTeX}}}
 \put(7,41){\scriptsize ${referenceNumber}}
-\put(7,35){\parbox[t]{5cm}{\footnotesize ${recipientAddressLaTeX}}}
-\put(127,54){\parbox[t]{7cm}{\footnotesize  ${recipientAddressLaTeX}}}
+\put(7,35){\footnotesize\parbox[t]{5cm}{${recipientAddressLaTeX}}}
+\put(127,54){\footnotesize\parbox[t]{7cm}{${recipientAddressLaTeX}}}
 \put(28,60.5){\small ${account}}
 \put(89,60.5){\small ${account}}
 \put(205,69){\small\makebox[0pt][r]{\ocrb ${referenceNumber}}}
