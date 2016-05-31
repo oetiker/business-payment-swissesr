@@ -54,7 +54,7 @@ use Mojo::Util qw(slurp);
 use Mojo::Base -base;
 use Cwd;
 
-our $VERSION = '0.13.0';
+our $VERSION = '0.13.1';
 
 =head2 luaLaTeX
 
