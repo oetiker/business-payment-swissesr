@@ -257,7 +257,7 @@ my $makeEsrLaTeX = sub {
 ${preambleAddons}
 \begin{document}
 TEX_END
-    $doc =~ s/\${(\S+?)}/$docSet{$1}/eg;
+    $doc =~ s/\$\{(\S+?)\}/$docSet{$1}/eg;
 
     for my $task (@{$self->tasks}) {
         my %cfg = %$task;
