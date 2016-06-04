@@ -54,7 +54,7 @@ use Mojo::Util qw(slurp);
 use Mojo::Base -base;
 use Cwd;
 
-our $VERSION = '0.13.1';
+our $VERSION = '0.13.2';
 
 =head2 luaLaTeX
 
@@ -294,7 +294,7 @@ TEX_END
 \put(180,29){\rule{0.5pt}{0.5pt}}
 DOC_END
 
-        $page =~ s/\${(\S+?)}/$docSet{$1}/eg;
+        $page =~ s/\$\{(\S+?)\}/$docSet{$1}/eg;
 
         $page .= <<'DOC_END';
 ${template}

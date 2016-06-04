@@ -93,7 +93,7 @@ typ4
 use Mojo::Base -base;
 
 use vars qw($VERSION);
-our $VERSION = '0.13.1';
+our $VERSION = '0.13.2';
 
 # all the magic of this parser is in setting up the right infrastructure
 # so that we can blaze through the file with just a few lines of code
