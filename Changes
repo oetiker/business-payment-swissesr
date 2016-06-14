@@ -1,5 +1,8 @@
 Revision history for Business::Payment::SwissESR
 
+0.13.3 2016-06-14
+  - fixed unescaped brace in regexp
+
 0.13.2 2016-06-04
   - fixed unescaped brace in regexp
 
