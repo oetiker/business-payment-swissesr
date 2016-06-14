@@ -54,7 +54,7 @@ use Mojo::Util qw(slurp);
 use Mojo::Base -base;
 use Cwd;
 
-our $VERSION = '0.13.2';
+our $VERSION = '0.13.3';
 
 =head2 luaLaTeX
 
@@ -336,7 +336,7 @@ DOC_END
                 return $cfg{$v}
             }
         };
-        $page =~ s/\${(\S+?)}/$resolve->($1)/eg;
+        $page =~ s/\$\{(\S+?)\}/$resolve->($1)/eg;
         $doc .= $page;
     }
     $doc .= '\end{document}'."\n";
